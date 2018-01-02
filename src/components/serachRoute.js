@@ -56,7 +56,7 @@ const {steps} = this.state;
                 />
 
                 <GooglePlacesAutocomplete
-                    placeholder="Search"
+                    placeholder="בחר כתובת יעד"
                     minLength={2} // minimum length of text to search
                     autoFocus={false}
                     returnKeyType={'search'} // Can be left out for default return key https://facebook.github.io/react-native/docs/textinput.html#returnkeytype
@@ -72,7 +72,7 @@ const {steps} = this.state;
                     query={{
                         // available options: https://developers.google.com/places/web-service/autocomplete
                         key: 'AIzaSyBmPFLVlYvx3594B8ASm7zuwQPTGep13_M',
-                        language: 'en', // language of the results
+                        language: 'iw', // language of the results
                         types: 'address', // default: 'geocode'
                     }}
                     styles={{
@@ -87,7 +87,7 @@ const {steps} = this.state;
                             borderBottomWidth:0,
                             marginLeft: 15,
                             marginRight: 15,
-                            height: 30,
+                            height: 50,
                         },
                         textInput: {
                             marginLeft: 0,
@@ -97,12 +97,16 @@ const {steps} = this.state;
                             fontSize: 16
                         },
                         predefinedPlacesDescription: {
-                            color: '#1faadb'
+                            //color: '#1faadb'
                         },
                         listView: {
                             marginTop:20,
-                            color: "#FFF"
-                        }
+                            // color: "#FFF"
+                        },
+                        description: {
+                            fontWeight: 'bold',
+                            color:'#FFF',
+                        },
                     }}
                     currentLocation={false} // Will add a 'Current location' button at the top of the predefined places list
                     currentLocationLabel="Current location"
@@ -122,7 +126,7 @@ const {steps} = this.state;
                     debounce={200}
                 />
                 <TouchableHighlight style={styles.btn} onPress={this.orderLimo}>
-                    <Text style={styles.btnText}>SEND</Text>
+                    <Text style={styles.btnText}>שלח</Text>
                 </TouchableHighlight>
             </View>
         );
@@ -135,7 +139,7 @@ const styles = StyleSheet.create({
         top: 0,
         left: 0,
         marginTop: 0,
-        height: 400,
+        height: '100%',
         minHeight:200,
         width: '100%',
         backgroundColor: '#01579b',
@@ -148,7 +152,7 @@ const styles = StyleSheet.create({
     },
 
     topViewInput: {
-        marginTop: 15,
+        marginTop: 25,
         marginLeft: 15,
         marginRight: 15,
         height: 40,

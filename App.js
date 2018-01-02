@@ -1,18 +1,10 @@
 import React, {Component} from 'react';
 import {
-    Platform,
     StyleSheet,
-    Text,
-    TextInput,
-    TouchableHighlight,
     View,
-    StatusBar,
-    Button
 } from 'react-native';
 import MapView, {PROVIDER_GOOGLE} from 'react-native-maps'
-import {GooglePlacesAutocomplete} from 'react-native-google-places-autocomplete';
 import ModalBox from './src/components/ModalBox'
-import ModalView from './src/components/ModalView'
 import SearchRoute from "./src/components/serachRoute";
 import Icon from 'react-native-vector-icons/FontAwesome';
 
@@ -79,8 +71,8 @@ export default class App extends Component<{}> {
     }
 
     onRegionChange(region, lastLat, lastLong) {
-        const lat = lastLat || this.state.lastLat;
-        const long = lastLong || this.state.lastLong;
+        const lat = region.latitude;
+        const long = region.longitude;
         this.setState({
             mapRegion: region,
             lastLat: lat,
@@ -99,19 +91,19 @@ export default class App extends Component<{}> {
     }
 
     render() {
-        const {openApproveModal, steps, currentLocation, openSearch} = this.state;
+        const {openApproveModal, currentLocation, openSearch} = this.state;
 
         return (
             <View style={styles.container}>
                 {openSearch && <SearchRoute currentLocation={currentLocation} closeSearchRoute={this.closeSearchRoute}/>}
-                {openApproveModal && <ModalBox close={this.closeModal}/>}
+                {openApproveModal && <ModalBox close={this.closeModal} isModalVisible={openApproveModal}/>}
                 <MapView
                     provider={PROVIDER_GOOGLE}
                     initialRegion={{
                         latitude: 32.78825,
                         longitude: 34.4324,
-                        latitudeDelta: 0.0922,
-                        longitudeDelta: 0.0421,
+                        latitudeDelta: 0.0002,
+                        longitudeDelta: 0.0001,
                     }}
                     style={styles.map}
                     region={this.state.mapRegion}
@@ -142,7 +134,7 @@ const styles = StyleSheet.create({
         bottom: 0,
         justifyContent: 'flex-end',
         alignItems: 'center',
-        marginTop: 20
+        zIndex:2
     },
     map: {
         position: 'absolute',
