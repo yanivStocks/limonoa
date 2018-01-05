@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-import {GooglePlacesAutocomplete} from 'react-native-google-places-autocomplete';
 import {
     Platform,
     StyleSheet,
@@ -10,8 +9,7 @@ import {
     ActivityIndicator
 } from 'react-native';
 import Modal from 'react-native-modalbox';
-// import SpinnerView from './SpinnerView';
-// import Modal from 'react-native-modal';
+
 
 export default class ModalBox extends Component<{}> {
     constructor(props) {
@@ -40,7 +38,7 @@ export default class ModalBox extends Component<{}> {
 
     render(){
         const {loading, showSuccessMsg, success} = this.state;
-        const {close} = this.props;
+        const {close, destination} = this.props;
         return (
             <Modal style={[styles.modal, styles.modal3]} position={"center"} ref={"modal3"} isDisabled={this.state.isDisabled}>
                 {loading &&
@@ -50,10 +48,12 @@ export default class ModalBox extends Component<{}> {
                 </View>
                     }
                 {success && <View>
-                    <Text style={{color: '#3B5998', fontSize: 14, textAlign: 'center'}}>יש!</Text>
-                    <Text style={{color: '#3B5998', fontSize: 14, textAlign: 'center'}}>נמצא נהג עבורך</Text>
-                    <Text style={{color: '#3B5998', fontSize: 14, textAlign: 'center'}}>עומר עם לימונוע מס 9 יגיע אליך תוך 3 דקות</Text>
-                    <Text style={{color: '#3B5998', fontSize: 14, marginTop: 15, textAlign: 'center'}}>המחיר:
+                    <Text style={{color: '#3B5998', fontSize: 16, textAlign: 'center', fontWeight: '700', marginBottom: 15}}>יש!</Text>
+                    <Text style={{color: '#3B5998', fontSize: 14, textAlign: 'center', marginBottom: 15}}>נמצא נהג עבורך</Text>
+                    <Text style={{color: '#3B5998', fontSize: 14, textAlign: 'center', marginBottom: 15}}>היעד: </Text>
+                    <Text style={{color: '#3B5998', fontSize: 16, textAlign: 'center', fontWeight: '700', marginBottom: 15}}>{destination}</Text>
+                    <Text style={{color: '#3B5998', fontSize: 15, textAlign: 'center', marginBottom: 15}}>עומר עם לימונוע מס 9 יגיע אליך תוך 3 דקות</Text>
+                    <Text style={{color: '#3B5998', fontSize: 14, marginTop: 15, textAlign: 'center', marginBottom: 15}}>המחיר:
                         <Text style={{color: '#616161', fontSize: 16, fontWeight: '600'}} > 29 שקלים חדשים</Text>
                     </Text>
                     <TouchableHighlight onPress={close} style={styles.approveBtn}>
@@ -64,7 +64,7 @@ export default class ModalBox extends Component<{}> {
                     <View>
                         <Text style={{color: '#3B5998', fontSize: 14 ,textAlign: 'center'}}>תודה שבחרת</Text>
                         <Text style={{color: '#fbc02d', fontSize: 16, fontWeight: '600',  marginTop: 15 , textAlign: 'center'}} >LEMONOA</Text>
-                        <Text style={{color: '#3B5998', fontSize: 14, marginTop: 15, textAlign: 'center'}}> האופנוע יגיע תוך<Text>3 דקות </Text></Text>
+                        <Text style={{color: '#3B5998', fontSize: 14, marginTop: 15, textAlign: 'center', marginBottom: 15}}> האופנוע יגיע תוך<Text> 3 דקות </Text></Text>
                         <TouchableHighlight onPress={close} style={styles.approveBtn}>
                             <Text style={{color: '#FFF', fontSize: 15, fontWeight: '600', textAlign: 'center'}} onPress={close}>סגור</Text>
                         </TouchableHighlight>
@@ -85,7 +85,9 @@ const styles = StyleSheet.create({
     modal: {
         zIndex: 300,
         justifyContent: 'center',
-        alignItems: 'center'
+        alignItems: 'center',
+        height:400,
+        width: '90%'
     },
 
     modal2: {

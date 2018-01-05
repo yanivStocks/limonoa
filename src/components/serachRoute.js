@@ -8,6 +8,8 @@ import {
 } from 'react-native';
 import {GooglePlacesAutocomplete} from 'react-native-google-places-autocomplete';
 import ModalView from './ModalView';
+import Icon from 'react-native-vector-icons/FontAwesome';
+
 
 export default class SearchRoute extends Component<{}> {
     constructor(props) {
@@ -18,18 +20,21 @@ export default class SearchRoute extends Component<{}> {
             legs: [],
         };
 
-        this.orderLimo = this.orderLimo.bind(this);
+        this.orderLimoWithTransit = this.orderLimoWithTransit.bind(this);
+        this.orderLimoNow = this.orderLimoNow.bind(this);
         this.close = this.close.bind(this);
+        this.routeSelected = this.routeSelected.bind(this);
 
     }
-    orderLimo() {
+    orderLimoWithTransit() {
         const {currentLocation} = this.props;
         fetch(`https://maps.googleapis.com/maps/api/directions/json?language=en&origin=${this.props.currentLocation}&destination=${this.state.destination}&mode=transit&key=AIzaSyBsrXgDNR_bVCYuKMkhs9LU6c_n9fzNZG8&transit_mode=train|bus`)
             .then((response) => response.json())
             .then((responseJson) => {
                 console.log(responseJson.routes[0].legs);
                 if (responseJson.routes) {
-                    this.setState({legs: responseJson.routes[0].legs, steps: responseJson.routes[0].legs[0].steps});
+                    this.setState({legs: responseJson.routes[0].legs, steps: responseJson.routes[0].legs[0].steps, openSteps: true});
+
                 }
             })
             .catch((error) => {
@@ -41,15 +46,32 @@ export default class SearchRoute extends Component<{}> {
         this.props.closeSearchRoute();
     }
 
+    routeSelected() {
+        const {steps, openSteps} = this.state;
+        this.setState({openSteps: false});
+        this.props.showRouteSelected(steps);
+        this.close()
+    }
+
+    orderLimoNow() {
+        const {orderLimo} = this.props;
+        const {destination} = this.state;
+        this.props.orderLimo(destination)
+    }
+
+
     render(){
-const {steps} = this.state;
+        const {steps, openSteps} = this.state;
         return (
             <View style={styles.topView}>
+                {openSteps &&<ModalView steps={steps} selectRoute={this.routeSelected}/>}
+
+
                 <TouchableHighlight style={styles.closeBtn} onPress={this.close}>
-                    <Text >x</Text>
+                    <Icon name="times" size={15}  style={{color: '#FFF', width: 15}} />
                 </TouchableHighlight>
-                {steps.length > 0 && <ModalView steps={steps}/>}
                 <TextInput
+                    underlineColorAndroid='transparent'
                     style={styles.topViewInput}
                     onChangeText={(currentLocation) => this.setState({currentLocation})}
                     value={this.props.currentLocation}
@@ -101,12 +123,14 @@ const {steps} = this.state;
                         },
                         listView: {
                             marginTop:20,
-                            // color: "#FFF"
                         },
                         description: {
                             fontWeight: 'bold',
                             color:'#FFF',
                         },
+                        container: {
+                            height:20,
+                        }
                     }}
                     currentLocation={false} // Will add a 'Current location' button at the top of the predefined places list
                     currentLocationLabel="Current location"
@@ -125,9 +149,13 @@ const {steps} = this.state;
                     ]} // filter the reverse geocoding results by types - ['locality', 'administrative_area_level_3'] if you want to display only cities
                     debounce={200}
                 />
-                <TouchableHighlight style={styles.btn} onPress={this.orderLimo}>
-                    <Text style={styles.btnText}>שלח</Text>
-                </TouchableHighlight>
+                <View style={styles.orderNow}>
+                    <Icon name="motorcycle"  size={30} padding={10} style={{color: '#3B5998', marginTop: 18 , marginLeft: 17, width: 39}} onPress={this.orderLimoNow}/>
+                </View>
+
+                <View style={styles.searchRoute}>
+                    <Icon name="bus" size={30}  style={{color: '#3B5998', marginTop: 17 , marginLeft: 22, width: 30}} onPress={this.orderLimoWithTransit} />
+                </View>
             </View>
         );
     }
@@ -142,17 +170,20 @@ const styles = StyleSheet.create({
         height: '100%',
         minHeight:200,
         width: '100%',
-        backgroundColor: '#01579b',
+        backgroundColor: '#3B5998',
+
         zIndex: 9,
     },
     closeBtn: {
         position: 'absolute',
         top: 5,
-        right: 5,
+        right: -15,
+        height: 30,
+        width:30
     },
 
     topViewInput: {
-        marginTop: 25,
+        marginTop: 45,
         marginLeft: 15,
         marginRight: 15,
         height: 40,
@@ -173,6 +204,26 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         color: '#FFF',
         marginTop: 10
-    }
+    },
+    orderNow: {
+        height:70,
+        width: 70,
+        backgroundColor: '#FFF',
+        position: 'absolute',
+        bottom: 10,
+        right: 10,
+    },
+    icon: {
+        fontSize:32,
+    },
+    searchRoute: {
+        height:70,
+        width: 70,
+        backgroundColor: '#FFF',
+
+        position: 'absolute',
+        bottom: 10,
+        left: 10,
+    },
 
 });

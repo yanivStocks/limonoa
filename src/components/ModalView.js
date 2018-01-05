@@ -9,7 +9,6 @@ import {
     ActivityIndicator
 } from 'react-native';
 import Modal from 'react-native-modalbox';
-// import SpinnerView from './SpinnerView';
 import Icon from 'react-native-vector-icons/FontAwesome';
 
 export default class ModalBox extends Component<{}> {
@@ -19,12 +18,20 @@ export default class ModalBox extends Component<{}> {
             isDisabled: false,
             loading : true,
         }
+        this.selectRoute = this.selectRoute.bind(this);
+
     }
 
     componentDidMount() {
         const {steps} = this.props;
         console.log(steps);
         this.refs.modal1.open();
+    }
+
+
+    selectRoute() {
+
+        this.props.selectRoute();
     }
 
     render(){
@@ -39,14 +46,18 @@ export default class ModalBox extends Component<{}> {
                 onOpened={this.onOpen}
                 onClosingState={this.onClosingState}>
                 {steps.length > 0 && <View style={{marginLeft: 10}}>
+                    <TouchableHighlight onPress={this.selectRoute}>
+                        <View>
                     {steps.map((step, index) => {
                         return (
-                            <Text key={index} style={styles.text}>
-                                <Icon name="bus" size={15}
+                            <Text key={index} style={styles.stepRow}>
+                                <Icon name={`${step.travel_mode === 'WALKING' ? 'arrow-right' : 'bus' }`} size={15}
                                       style={{color: '#000', marginRight: 10 ,  marginTop: 10}} />   {step.html_instructions}
                             </Text>
                         )
                     })}
+                        </View>
+                    </TouchableHighlight>
                 </View>
                 }
                 {/*<Button onPress={() => this.setState({swipeToClose: !this.state.swipeToClose})} style={styles.btn}>Disable swipeToClose({this.state.swipeToClose ? "true" : "false"})</Button>*/}
@@ -88,7 +99,7 @@ const styles = StyleSheet.create({
         backgroundColor: "transparent"
     },
 
-    text: {
+    stepRow: {
         color: "#616161",
         fontSize: 14,
         fontWeight: '500',
