@@ -136,11 +136,12 @@ export default class App extends Component<{}> {
             });
     }
     mapPressed(e) {
-        console.log(e);
-        this.setState({ pickUpLat: e.nativeEvent.coordinate.latitude,
-            pickUpLong: e.nativeEvent.coordinate.longitude,
-            approveOrderOnClick: true});
-
+        const {destination} = this.state
+        if(destination !== '') {
+            this.setState({ pickUpLat: e.nativeEvent.coordinate.latitude,
+             pickUpLong: e.nativeEvent.coordinate.longitude,
+             approveOrderOnClick: true});
+        }
     }
 
     render() {

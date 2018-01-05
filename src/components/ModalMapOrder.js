@@ -31,7 +31,7 @@ export default class ModalMapOrder extends Component<{}> {
         this.refs.modal3.open();
         setTimeout(() => {
             this.setState({loading: false, success: true});
-        },4000);
+        },8000);
     }
 
     showSuccessMsg() {
