@@ -47,9 +47,9 @@ export default class SearchRoute extends Component<{}> {
     }
 
     routeSelected() {
-        const {steps, openSteps} = this.state;
+        const {steps, openSteps, destination} = this.state;
         this.setState({openSteps: false});
-        this.props.showRouteSelected(steps);
+        this.props.showRouteSelected(steps, destination);
         this.close()
     }
 

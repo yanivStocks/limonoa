@@ -7,6 +7,7 @@ import {
 } from 'react-native';
 import MapView, {PROVIDER_GOOGLE} from 'react-native-maps'
 import ModalBox from './src/components/ModalBox'
+import ModalMapOrder from './src/components/ModalMapOrder'
 import SearchRoute from "./src/components/serachRoute";
 import Icon from 'react-native-vector-icons/FontAwesome';
 
@@ -23,6 +24,11 @@ export default class App extends Component<{}> {
             steps: [],
             legs: [],
             points: [],
+            pickUpLong: false,
+            pickUpLat: false,
+            approveOrderOnClick: false
+
+
         };
         this.orderLimo = this.orderLimo.bind(this);
         this.closeModal = this.closeModal.bind(this);
@@ -30,6 +36,8 @@ export default class App extends Component<{}> {
         this.closeSearchRoute = this.closeSearchRoute.bind(this);
         this.decode = this.decode.bind(this);
         this.showRouteSelected = this.showRouteSelected.bind(this);
+        this.mapPressed = this.mapPressed.bind(this);
+        this.closeApproveOrderOnClick = this.closeApproveOrderOnClick.bind(this);
     }
 
     componentDidMount() {
@@ -44,14 +52,14 @@ export default class App extends Component<{}> {
         });
     }
 
-    showRouteSelected(steps) {
+    showRouteSelected(steps, destination) {
         let points = [];
         steps.map((step) => {
             console.log(this.decode(step.polyline.points));
             const poly = this.decode(step.polyline.points);
             points = points.concat(poly);
         });
-        this.setState({points: points , steps});
+        this.setState({points: points , steps, destination});
     }
 
     decode(encoded){
@@ -92,6 +100,9 @@ export default class App extends Component<{}> {
     closeModal() {
         this.setState({openApproveModal: false})
     }
+    closeApproveOrderOnClick() {
+        this.setState({approveOrderOnClick: false})
+    }
 
     orderLimo(destination) {
         this.setState({openApproveModal: true, openSearch: false, destination})
@@ -124,27 +135,46 @@ export default class App extends Component<{}> {
                 console.error(error);
             });
     }
+    mapPressed(e) {
+        console.log(e);
+        this.setState({ pickUpLat: e.nativeEvent.coordinate.latitude,
+            pickUpLong: e.nativeEvent.coordinate.longitude,
+            approveOrderOnClick: true});
+
+    }
 
     render() {
-        const {openApproveModal, currentLocation, openSearch, points, destination, steps} = this.state;
+        const {openApproveModal, currentLocation, openSearch, points, destination, steps, pickUpLong, pickUpLat,approveOrderOnClick} = this.state;
 
         return (
             <View style={styles.container}>
                 {openSearch && <SearchRoute currentLocation={currentLocation} closeSearchRoute={this.closeSearchRoute} showRouteSelected={this.showRouteSelected} orderLimo={this.orderLimo}/>}
                 {openApproveModal && <ModalBox close={this.closeModal} isModalVisible={openApproveModal} destination={destination}/>}
+                {approveOrderOnClick && <ModalMapOrder close={this.closeApproveOrderOnClick} isModalVisible={approveOrderOnClick} destination={destination}/>}
                 <MapView
                     provider={PROVIDER_GOOGLE}
                     initialRegion={{
                         latitude: 32.78825,
                         longitude: 34.4324,
-                        latitudeDelta: 0.0002,
-                        longitudeDelta: 0.0001,
+                        latitudeDelta: 0.1002,
+                        longitudeDelta: 0.1001,
                     }}
                     style={styles.map}
                     region={this.state.mapRegion}
                     showsUserLocation={true}
                     followUserLocation={true}
-                    onRegionChange={this.onRegionChange.bind(this)}>
+                    moveOnMarkerPress={false}
+                    onRegionChange={this.onRegionChange.bind(this)}
+                    onPress={this.mapPressed.bind(this)}
+
+                >
+
+                    {pickUpLong && <MapView.Marker
+                        coordinate={{latitude: pickUpLat, longitude: pickUpLong}}
+                        title={'איסוף'}
+                        pinColor={'#3B5998'}
+                    />
+                    }
 
                     <MapView.Polyline
                         coordinates={points}

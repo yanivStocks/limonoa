@@ -47,7 +47,7 @@ export default class ModalBox extends Component<{}> {
                 onClosingState={this.onClosingState}>
                 {steps.length > 0 && <View style={{marginLeft: 10}}>
                     <TouchableHighlight onPress={this.selectRoute}>
-                        <View>
+                        <View style={{marginBottom: 50}}>
                     {steps.map((step, index) => {
                         return (
                             <Text key={index} style={styles.stepRow}>
@@ -60,7 +60,6 @@ export default class ModalBox extends Component<{}> {
                     </TouchableHighlight>
                 </View>
                 }
-                {/*<Button onPress={() => this.setState({swipeToClose: !this.state.swipeToClose})} style={styles.btn}>Disable swipeToClose({this.state.swipeToClose ? "true" : "false"})</Button>*/}
             </Modal>
         );
     }
@@ -82,7 +81,8 @@ const styles = StyleSheet.create({
 
     modal1: {
         height: '100%',
-        backgroundColor: "#FFF"
+        backgroundColor: "#FFF",
+
     },
     btn: {
         margin: 10,
