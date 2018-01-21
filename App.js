@@ -8,7 +8,8 @@ import {
 import MapView, {PROVIDER_GOOGLE} from 'react-native-maps'
 import ModalBox from './src/components/ModalBox'
 import ModalMapOrder from './src/components/ModalMapOrder'
-import SearchRoute from "./src/components/serachRoute";
+import SearchRoute from "./src/components/SerachRoute";
+import SelectCurrentLocation from "./src/components/SelectCurrentLocation";
 import Icon from 'react-native-vector-icons/FontAwesome';
 
 
@@ -16,7 +17,7 @@ export default class App extends Component<{}> {
     constructor(props) {
         super(props);
         this.state = {
-            currentLocation: 'נחמיה 22, תל אביב',
+            currentLocation: 'שדרות רוטשילד 1, תל אביב יפו',
             destination: '',
             mapRegion: null,
             lastLat: null,
@@ -26,9 +27,14 @@ export default class App extends Component<{}> {
             points: [],
             pickUpLong: false,
             pickUpLat: false,
-            approveOrderOnClick: false
-
-
+            approveOrderOnClick: false,
+            selectCurrentLocation: false,
+            region: {
+                latitude: 32.062979,
+                longitude: 34.769209,
+                latitudeDelta: 0.01,
+                longitudeDelta: 0.01,
+            },
         };
         this.orderLimo = this.orderLimo.bind(this);
         this.closeModal = this.closeModal.bind(this);
@@ -36,19 +42,32 @@ export default class App extends Component<{}> {
         this.closeSearchRoute = this.closeSearchRoute.bind(this);
         this.decode = this.decode.bind(this);
         this.showRouteSelected = this.showRouteSelected.bind(this);
-        this.mapPressed = this.mapPressed.bind(this);
+        this.onRegionChange = this.onRegionChange.bind(this);
         this.closeApproveOrderOnClick = this.closeApproveOrderOnClick.bind(this);
+        this.selectCurrentLocation = this.selectCurrentLocation.bind(this);
+        this.closeSelectCurrentLocation = this.closeSelectCurrentLocation.bind(this);
+        this.openSearchCurrentLocation = this.openSearchCurrentLocation.bind(this);
     }
 
     componentDidMount() {
-        this.watchID = navigator.geolocation.watchPosition((position) => {
+
+        navigator.geolocation.getCurrentPosition((position) => {
+            console.log(position);
             let region = {
                 latitude: position.coords.latitude,
                 longitude: position.coords.longitude,
-                latitudeDelta: 0.00922 * 1.5,
-                longitudeDelta: 0.00421 * 1.5
-            }
-            this.onRegionChange(region, region.latitude, region.longitude);
+                latitudeDelta: 0.0001,
+                longitudeDelta: 0.0001
+            };
+            fetch(`https://maps.googleapis.com/maps/api/geocode/json?latlng=${region.latitude},${region.longitude}&result_type=street_address&language=iw&key=AIzaSyBsrXgDNR_bVCYuKMkhs9LU6c_n9fzNZG8`)
+                .then((response) => response.json()).then((responseJson) => {
+                if (responseJson.results[0]) {
+                    this.setState({currentLocation: responseJson.results[0].formatted_address});
+                }
+            }).catch((error) => {
+                console.error(error);
+            });
+           // this.onRegionChange(region);
         });
     }
 
@@ -100,8 +119,13 @@ export default class App extends Component<{}> {
     closeModal() {
         this.setState({openApproveModal: false})
     }
+
     closeApproveOrderOnClick() {
         this.setState({approveOrderOnClick: false})
+    }
+
+    closeSelectCurrentLocation() {
+        this.setState({selectCurrentLocation: false})
     }
 
     orderLimo(destination) {
@@ -116,7 +140,7 @@ export default class App extends Component<{}> {
         this.setState({openSearch: false})
     }
 
-    onRegionChange(region, lastLat, lastLong) {
+    /*onRegionChange(region, lastLat, lastLong) {
         const lat = region.latitude;
         const long = region.longitude;
         this.setState({
@@ -130,46 +154,61 @@ export default class App extends Component<{}> {
             if (responseJson.results[0]) {
                 this.setState({currentLocation: responseJson.results[0].formatted_address});
             }
-        })
-            .catch((error) => {
-                console.error(error);
-            });
+        }).catch((error) => {
+            console.error(error);
+        });
+    }*/
+    onRegionChange(region) {
+        console.log(region);
+        // fetch(`https://maps.googleapis.com/maps/api/geocode/json?latlng=${region.latitude},${region.longitude}&result_type=street_address&language=iw&key=AIzaSyBsrXgDNR_bVCYuKMkhs9LU6c_n9fzNZG8`)
+        //     .then((response) => response.json()).then((responseJson) => {
+        //     if (responseJson.results[0]) {
+        //         this.setState({currentLocation: responseJson.results[0].formatted_address});
+        //     }
+        // }).catch((error) => {
+        //     console.error(error);
+        // });
+        this.setState({ region });
     }
-    mapPressed(e) {
+
+   /* mapPressed(e) {
         const {destination} = this.state
         if(destination !== '') {
             this.setState({ pickUpLat: e.nativeEvent.coordinate.latitude,
              pickUpLong: e.nativeEvent.coordinate.longitude,
              approveOrderOnClick: true});
         }
+    }*/
+
+    selectCurrentLocation(currentLocation)  {
+        this.setState({currentLocation});
+    }
+
+    openSearchCurrentLocation() {
+        this.setState({selectCurrentLocation: true});
     }
 
     render() {
-        const {openApproveModal, currentLocation, openSearch, points, destination, steps, pickUpLong, pickUpLat,approveOrderOnClick} = this.state;
+        const {openApproveModal, currentLocation, openSearch, points, destination, steps, pickUpLong, pickUpLat,approveOrderOnClick, selectCurrentLocation} = this.state;
 
         return (
             <View style={styles.container}>
                 {openSearch && <SearchRoute currentLocation={currentLocation} closeSearchRoute={this.closeSearchRoute} showRouteSelected={this.showRouteSelected} orderLimo={this.orderLimo}/>}
                 {openApproveModal && <ModalBox close={this.closeModal} isModalVisible={openApproveModal} destination={destination}/>}
                 {approveOrderOnClick && <ModalMapOrder close={this.closeApproveOrderOnClick} isModalVisible={approveOrderOnClick} destination={destination}/>}
+                {selectCurrentLocation && <SelectCurrentLocation close={this.closeSelectCurrentLocation} isModalVisible={selectCurrentLocation} selectCurrentLocation={this.selectCurrentLocation}/>}
                 <MapView
                     provider={PROVIDER_GOOGLE}
-                    initialRegion={{
-                        latitude: 32.78825,
-                        longitude: 34.4324,
-                        latitudeDelta: 0.1002,
-                        longitudeDelta: 0.1001,
-                    }}
                     style={styles.map}
-                    region={this.state.mapRegion}
+                    region={this.state.region}
                     showsUserLocation={true}
                     followUserLocation={true}
-                    moveOnMarkerPress={false}
-                    onRegionChange={this.onRegionChange.bind(this)}
-                    onPress={this.mapPressed.bind(this)}
+                    // moveOnMarkerPress={false}
+
+                    onRegionChange={this.onRegionChange}
+                    //  onPress={this.mapPressed.bind(this)}
 
                 >
-
                     {pickUpLong && <MapView.Marker
                         coordinate={{latitude: pickUpLat, longitude: pickUpLong}}
                         title={'איסוף'}
@@ -179,22 +218,18 @@ export default class App extends Component<{}> {
 
                     <MapView.Polyline
                         coordinates={points}
-                        strokeColor="#fbc02d" // fallback for when `strokeColors` is not supported by the map-provider
-                        strokeColors={[
-                            '#7F0000',
-                            '#00000000', // no color, creates a "long" gradient between the previous and next coordinate
-                            '#B24112',
-                            '#E5845C',
-                            '#238C23',
-                            '#7F0000'
-                        ]}
+                        strokeColor="#3B5998"
                         strokeWidth={6}
                     />
 
 
                 </MapView>
                 {points.length === 0 && <View style={styles.bottomButtons}>
-                    <Text style={{fontSize: 22, color: '#3B5998' , textAlign: 'center', marginTop: 10, marginBottom: 20}}>{currentLocation}</Text>
+                    <Text style={{fontSize: 22, color: '#3B5998' , textAlign: 'center', marginTop: 10, marginBottom: 20}}
+                          onPress={this.openSearchCurrentLocation}>
+                        <Text>{currentLocation}</Text>
+
+                    </Text>
                     <TouchableHighlight style={styles.continueBtn} onPress={this.openSearchRoute}>
                         <Text style={styles.continueBtnText}>המשך</Text>
                     </TouchableHighlight>

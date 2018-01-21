@@ -7,78 +7,35 @@ import {
     TouchableHighlight,
 } from 'react-native';
 import {GooglePlacesAutocomplete} from 'react-native-google-places-autocomplete';
-import ModalView from './ModalView';
 import Icon from 'react-native-vector-icons/FontAwesome';
 
 
-export default class SearchRoute extends Component<{}> {
+
+export default class SelectCurrentLocation extends Component<{}> {
     constructor(props) {
         super(props);
         this.state = {
-            destination: '',
-            steps: [],
-            legs: [],
+            currentLocation: '',
         };
 
-        this.orderLimoWithTransit = this.orderLimoWithTransit.bind(this);
-        this.orderLimoNow = this.orderLimoNow.bind(this);
-        this.close = this.close.bind(this);
-        this.routeSelected = this.routeSelected.bind(this);
-
-    }
-    orderLimoWithTransit() {
-        const {currentLocation} = this.props;
-        fetch(`https://maps.googleapis.com/maps/api/directions/json?language=en&origin=${this.props.currentLocation}&destination=${this.state.destination}&mode=transit&key=AIzaSyBsrXgDNR_bVCYuKMkhs9LU6c_n9fzNZG8&transit_mode=train|bus`)
-            .then((response) => response.json())
-            .then((responseJson) => {
-                console.log(responseJson.routes[0].legs);
-                if (responseJson.routes) {
-                    this.setState({legs: responseJson.routes[0].legs, steps: responseJson.routes[0].legs[0].steps, openSteps: true});
-
-                }
-            })
-            .catch((error) => {
-                console.error(error);
-            });
+        this.selectCurrentLocation = this.selectCurrentLocation.bind(this);
     }
 
-    close() {
-        this.props.closeSearchRoute();
-    }
-
-    routeSelected() {
-        const {steps, openSteps, destination} = this.state;
-        this.setState({openSteps: false});
-        this.props.showRouteSelected(steps, destination);
-        this.close()
-    }
-
-    orderLimoNow() {
-        const {orderLimo} = this.props;
-        const {destination} = this.state;
-        this.props.orderLimo(destination)
+    selectCurrentLocation() {
+        console.log(this.state.currentLocation);
+        this.props.selectCurrentLocation(this.state.currentLocation);
+        this.props.close();
     }
 
 
     render(){
-        const {steps, openSteps} = this.state;
         return (
             <View style={styles.topView}>
-                {openSteps &&<ModalView steps={steps} selectRoute={this.routeSelected}/>}
-
-
-                <TouchableHighlight style={styles.closeBtn} onPress={this.close}>
+                <TouchableHighlight style={styles.closeBtn} onPress={this.props.close}>
                     <Icon name="times" size={15}  style={{color: '#FFF', width: 15}} />
                 </TouchableHighlight>
-                <TextInput
-                    underlineColorAndroid='transparent'
-                    style={styles.topViewInput}
-                    onChangeText={(currentLocation) => this.setState({currentLocation})}
-                    value={this.props.currentLocation}
-                />
-
                 <GooglePlacesAutocomplete
-                    placeholder="בחר כתובת יעד"
+                    placeholder="בחר כתובת מקור"
                     minLength={2} // minimum length of text to search
                     autoFocus={false}
                     returnKeyType={'search'} // Can be left out for default return key https://facebook.github.io/react-native/docs/textinput.html#returnkeytype
@@ -86,7 +43,7 @@ export default class SearchRoute extends Component<{}> {
                     fetchDetails={true}
                     renderDescription={row => row.description} // custom description render
                     onPress={(data, details = null) => {
-                        this.setState({destination: data.description});
+                        this.setState({currentLocation: data.description});
                     }}
                     getDefaultValue={() => {
                         return ''; // text input default value
@@ -109,6 +66,7 @@ export default class SearchRoute extends Component<{}> {
                             borderBottomWidth:0,
                             marginLeft: 15,
                             marginRight: 15,
+                            marginTop: 30,
                             height: 50,
                         },
                         textInput: {
@@ -133,7 +91,7 @@ export default class SearchRoute extends Component<{}> {
                         }
                     }}
                     currentLocation={false} // Will add a 'Current location' button at the top of the predefined places list
-                    currentLocationLabel="Current location"
+                    currentLocationLabel="כתובת נוכחית"
                     nearbyPlacesAPI="GooglePlacesSearch" // Which API to use: GoogleReverseGeocoding or GooglePlacesSearch
                     GoogleReverseGeocodingQuery={{
                         // available options for GoogleReverseGeocoding API : https://developers.google.com/maps/documentation/geocoding/intro
@@ -149,19 +107,33 @@ export default class SearchRoute extends Component<{}> {
                     ]} // filter the reverse geocoding results by types - ['locality', 'administrative_area_level_3'] if you want to display only cities
                     debounce={200}
                 />
-                <View style={styles.orderNow}>
-                    <Icon name="motorcycle"  size={30} padding={10} style={{color: '#3B5998', marginTop: 18 , marginLeft: 17, width: 39}} onPress={this.orderLimoNow}/>
-                </View>
-
-                <View style={styles.searchRoute}>
-                    <Icon name="bus" size={30}  style={{color: '#3B5998', marginTop: 17 , marginLeft: 22, width: 30}} onPress={this.orderLimoWithTransit} />
-                </View>
+                <TouchableHighlight style={styles.continueBtn} onPress={this.selectCurrentLocation}>
+                    <Text style={styles.continueBtnText}>אישור</Text>
+                </TouchableHighlight>
             </View>
         );
     }
 }
 
 const styles = StyleSheet.create({
+    continueBtn : {
+        position: 'absolute',
+        bottom: 40,
+        height:50,
+        width: '80%',
+        backgroundColor: '#3e3e3e',
+        marginLeft: '10%'
+
+    },
+    continueBtnText : {
+        color: '#FFF',
+        fontSize:20,
+        textAlign: 'center',
+        fontWeight:'bold',
+        marginTop:10
+
+    },
+
     topView: {
         position: 'absolute',
         top: 0,

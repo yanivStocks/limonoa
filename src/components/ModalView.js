@@ -30,7 +30,6 @@ export default class ModalBox extends Component<{}> {
 
 
     selectRoute() {
-
         this.props.selectRoute();
     }
 
