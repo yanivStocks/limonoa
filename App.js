@@ -25,6 +25,7 @@ export default class App extends Component<{}> {
             steps: [],
             legs: [],
             points: [],
+            lemoPoly: [],
             pickUpLong: false,
             pickUpLat: false,
             approveOrderOnClick: false,
@@ -47,6 +48,7 @@ export default class App extends Component<{}> {
         this.selectCurrentLocation = this.selectCurrentLocation.bind(this);
         this.closeSelectCurrentLocation = this.closeSelectCurrentLocation.bind(this);
         this.openSearchCurrentLocation = this.openSearchCurrentLocation.bind(this);
+        this.startMoving = this.startMoving.bind(this);
     }
 
     componentDidMount() {
@@ -71,14 +73,16 @@ export default class App extends Component<{}> {
         });
     }
 
-    showRouteSelected(steps, destination) {
+    showRouteSelected(steps, destination, overview_polyline, lemoDestination,lemoDestinationStop) {
         let points = [];
         steps.map((step) => {
             console.log(this.decode(step.polyline.points));
             const poly = this.decode(step.polyline.points);
-            points = points.concat(poly);
+            const lineColor = step.travel_mode === 'WALKING' ? '#000' : '#3B5998';
+            points.push({lineColor, line: poly});
         });
-        this.setState({points: points , steps, destination});
+        const lemoPoly = this.decode(overview_polyline.points);
+        this.setState({points: points , steps, destination, lemoPoly,lemoDestination,lemoDestinationStop});
     }
 
     decode(encoded){
@@ -140,45 +144,14 @@ export default class App extends Component<{}> {
         this.setState({openSearch: false})
     }
 
-    /*onRegionChange(region, lastLat, lastLong) {
-        const lat = region.latitude;
-        const long = region.longitude;
-        this.setState({
-            mapRegion: region,
-            lastLat: lat,
-            lastLong: long,
-        });
+    startMoving() {
 
-        fetch(`https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${long}&result_type=street_address&language=iw&key=AIzaSyBsrXgDNR_bVCYuKMkhs9LU6c_n9fzNZG8`)
-            .then((response) => response.json()).then((responseJson) => {
-            if (responseJson.results[0]) {
-                this.setState({currentLocation: responseJson.results[0].formatted_address});
-            }
-        }).catch((error) => {
-            console.error(error);
-        });
-    }*/
-    onRegionChange(region) {
-        console.log(region);
-        // fetch(`https://maps.googleapis.com/maps/api/geocode/json?latlng=${region.latitude},${region.longitude}&result_type=street_address&language=iw&key=AIzaSyBsrXgDNR_bVCYuKMkhs9LU6c_n9fzNZG8`)
-        //     .then((response) => response.json()).then((responseJson) => {
-        //     if (responseJson.results[0]) {
-        //         this.setState({currentLocation: responseJson.results[0].formatted_address});
-        //     }
-        // }).catch((error) => {
-        //     console.error(error);
-        // });
-        this.setState({ region });
     }
 
-   /* mapPressed(e) {
-        const {destination} = this.state
-        if(destination !== '') {
-            this.setState({ pickUpLat: e.nativeEvent.coordinate.latitude,
-             pickUpLong: e.nativeEvent.coordinate.longitude,
-             approveOrderOnClick: true});
-        }
-    }*/
+    onRegionChange(region) {
+        console.log(region);
+        this.setState({ region });
+    }
 
     selectCurrentLocation(currentLocation)  {
         this.setState({currentLocation});
@@ -189,7 +162,8 @@ export default class App extends Component<{}> {
     }
 
     render() {
-        const {openApproveModal, currentLocation, openSearch, points, destination, steps, pickUpLong, pickUpLat,approveOrderOnClick, selectCurrentLocation} = this.state;
+        const {openApproveModal, currentLocation, openSearch, points, destination, steps, pickUpLong,
+            pickUpLat,approveOrderOnClick, selectCurrentLocation, lemoPoly, lemoDestination,lemoDestinationStop} = this.state;
 
         return (
             <View style={styles.container}>
@@ -205,9 +179,8 @@ export default class App extends Component<{}> {
                     followUserLocation={true}
                     // moveOnMarkerPress={false}
 
-                    onRegionChange={this.onRegionChange}
+                   // onRegionChange={this.onRegionChange}
                     //  onPress={this.mapPressed.bind(this)}
-
                 >
                     {pickUpLong && <MapView.Marker
                         coordinate={{latitude: pickUpLat, longitude: pickUpLong}}
@@ -216,11 +189,21 @@ export default class App extends Component<{}> {
                     />
                     }
 
-                    <MapView.Polyline
-                        coordinates={points}
-                        strokeColor="#3B5998"
-                        strokeWidth={6}
-                    />
+                    {points.map((x, index) => {
+                        return(
+                            <MapView.Polyline
+                                coordinates={x.line}
+                                strokeColor='#3B5998'
+                                strokeWidth={4}
+                                key={index}
+                                />
+                        )
+                    })}
+                    {lemoPoly.length > 0  && <MapView.Polyline
+                        coordinates={lemoPoly}
+                        strokeColor="#fbc02d"
+                        strokeWidth={4}
+                    />}
 
 
                 </MapView>
@@ -236,21 +219,34 @@ export default class App extends Component<{}> {
                 </View>}
                 {points.length > 0 &&
                 <View style={styles.steps}>
+                    <View style={{marginLeft: 10}}>
+                        <Text style={styles.stepRow}>
+                            <Icon name={`motorcycle`} size={15}
+                                  style={{color: '#000', marginRight: 10 ,  marginTop: 10}} />   {lemoDestinationStop}
+                        </Text>
+                    </View>
                     {steps.length > 0 && <View style={{marginLeft: 10}}>
                         <TouchableHighlight>
-                            <View style={{marginBottom:20 , marginTop:20}}>
+                            <View style={{marginBottom:20}}>
                                 {steps.map((step, index) => {
-                                    return (
-                                        <Text key={index} style={styles.stepRow}>
-                                            <Icon name={`${step.travel_mode === 'WALKING' ? 'arrow-right' : 'bus' }`} size={15}
-                                                  style={{color: '#000', marginRight: 10 ,  marginTop: 10}} />   {step.html_instructions}
-                                        </Text>
-                                    )
+                                    if(index > 0) {
+                                        return (
+                                            <Text key={index} style={styles.stepRow}>
+                                                <Icon name={`${step.travel_mode === 'WALKING' ? 'arrow-right' : 'bus' }`} size={15}
+                                                      style={{color: '#000', marginRight: 10 ,  marginTop: 10}} />   {step.html_instructions}
+                                            </Text>
+                                        )
+                                    }
+
                                 })}
                             </View>
                         </TouchableHighlight>
+                        <TouchableHighlight style={styles.makeOrder} onPress={this.startMoving}>
+                            <Text style={styles.continueBtnText}>הזמן</Text>
+                        </TouchableHighlight>
                     </View>
                     }
+
                 </View>
                 }
             </View>
@@ -294,6 +290,13 @@ const styles = StyleSheet.create({
         fontWeight: '700',
         color: '#FFF'
 
+    },
+    makeOrder: {
+        height:50,
+        width: '80%',
+        backgroundColor: '#3e3e3e',
+        marginLeft: '10%',
+        marginBottom: 20
     },
     continueBtn : {
         height:50,

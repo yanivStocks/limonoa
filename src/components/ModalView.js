@@ -45,6 +45,7 @@ export default class ModalBox extends Component<{}> {
                 onOpened={this.onOpen}
                 onClosingState={this.onClosingState}>
                 {steps.length > 0 && <View style={{marginLeft: 10}}>
+                    <Text> לחץ על המסלול  </Text>
                     <TouchableHighlight onPress={this.selectRoute}>
                         <View style={{marginBottom: 50}}>
                     {steps.map((step, index) => {

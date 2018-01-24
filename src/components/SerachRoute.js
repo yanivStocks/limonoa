@@ -26,16 +26,45 @@ export default class SearchRoute extends Component<{}> {
         this.routeSelected = this.routeSelected.bind(this);
 
     }
-    orderLimoWithTransit() {
+
+    getLimonaRoud(steps) {
         const {currentLocation} = this.props;
-        fetch(`https://maps.googleapis.com/maps/api/directions/json?language=en&origin=${this.props.currentLocation}&destination=${this.state.destination}&mode=transit&key=AIzaSyBsrXgDNR_bVCYuKMkhs9LU6c_n9fzNZG8&transit_mode=train|bus`)
+        let lemoDestination = '';
+        let lemoDestinationStop = '';
+        for(let i = 0; i< steps.length ; i++) {
+           if(steps[i].travel_mode === 'TRANSIT') {
+               lemoDestination =`${steps[i].start_location.lat},${steps[i].start_location.lng}`;
+               lemoDestinationStop = steps[i].transit_details.departure_stop.name;
+               this.setState({lemoDestination,lemoDestinationStop});
+           }
+        }
+        fetch(`https://maps.googleapis.com/maps/api/directions/json?language=iw&origin=${currentLocation}&destination=${lemoDestination}&mode=driving&key=AIzaSyBsrXgDNR_bVCYuKMkhs9LU6c_n9fzNZG8`)
             .then((response) => response.json())
             .then((responseJson) => {
-                console.log(responseJson.routes[0].legs);
+                console.log(responseJson.routes[0]);
                 if (responseJson.routes) {
-                    this.setState({legs: responseJson.routes[0].legs, steps: responseJson.routes[0].legs[0].steps, openSteps: true});
-
+                    this.setState({overview_polyline: responseJson.routes[0].overview_polyline});
+                    this.routeSelected();
                 }
+
+            })
+            .catch((error) => {
+                console.error(error);
+            });
+    }
+
+    orderLimoWithTransit() {
+        const {currentLocation} = this.props;
+        const originAddress = 'Azrieli Mall, Derech Menachem Begin 132, Tel Aviv-Yafo';
+        fetch(`https://maps.googleapis.com/maps/api/directions/json?language=iw&origin=${originAddress}&destination=${this.state.destination}&mode=transit&key=AIzaSyBsrXgDNR_bVCYuKMkhs9LU6c_n9fzNZG8&transit_mode=train|bus`)
+            .then((response) => response.json())
+            .then((responseJson) => {
+                console.log(responseJson.routes, responseJson.routes[0].legs);
+                if (responseJson.routes) {
+                    this.setState({legs: responseJson.routes[0].legs, steps: responseJson.routes[0].legs[0].steps});
+                }
+
+                this.getLimonaRoud(responseJson.routes[0].legs[0].steps);
             })
             .catch((error) => {
                 console.error(error);
@@ -47,9 +76,9 @@ export default class SearchRoute extends Component<{}> {
     }
 
     routeSelected() {
-        const {steps, openSteps, destination} = this.state;
+        const {steps, openSteps, destination,  overview_polyline, lemoDestination,lemoDestinationStop} = this.state;
         this.setState({openSteps: false});
-        this.props.showRouteSelected(steps, destination);
+        this.props.showRouteSelected(steps, destination, overview_polyline, lemoDestination,lemoDestinationStop);
         this.close()
     }
 
