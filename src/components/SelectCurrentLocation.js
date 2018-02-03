@@ -32,7 +32,7 @@ export default class SelectCurrentLocation extends Component<{}> {
         return (
             <View style={styles.topView}>
                 <TouchableHighlight style={styles.closeBtn} onPress={this.props.close}>
-                    <Icon name="times" size={15}  style={{color: '#FFF', width: 15}} />
+                    <Icon name="times" size={20}  style={{color: '#FFF', width: 20}} />
                 </TouchableHighlight>
                 <GooglePlacesAutocomplete
                     placeholder="בחר כתובת מקור"
@@ -44,6 +44,7 @@ export default class SelectCurrentLocation extends Component<{}> {
                     renderDescription={row => row.description} // custom description render
                     onPress={(data, details = null) => {
                         this.setState({currentLocation: data.description});
+                        this.selectCurrentLocation();
                     }}
                     getDefaultValue={() => {
                         return ''; // text input default value
@@ -107,9 +108,9 @@ export default class SelectCurrentLocation extends Component<{}> {
                     ]} // filter the reverse geocoding results by types - ['locality', 'administrative_area_level_3'] if you want to display only cities
                     debounce={200}
                 />
-                <TouchableHighlight style={styles.continueBtn} onPress={this.selectCurrentLocation}>
-                    <Text style={styles.continueBtnText}>אישור</Text>
-                </TouchableHighlight>
+                {/*<TouchableHighlight style={styles.continueBtn} onPress={this.selectCurrentLocation}>*/}
+                    {/*<Text style={styles.continueBtnText}>אישור</Text>*/}
+                {/*</TouchableHighlight>*/}
             </View>
         );
     }
@@ -150,8 +151,8 @@ const styles = StyleSheet.create({
         position: 'absolute',
         top: 5,
         right: -15,
-        height: 30,
-        width:30
+        height: 40,
+        width:40
     },
 
     topViewInput: {

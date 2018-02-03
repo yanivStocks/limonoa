@@ -18,7 +18,8 @@ export default class ModalBox extends Component<{}> {
             isDisabled: false,
             loading : true,
             showSuccessMsg: false,
-            success: false
+            success: false,
+            driversNames: [ 'אבי','אריאל','שי','דניאל','אלון','עדי' ,'עומר'],
         }
         this.showSuccessMsg = this.showSuccessMsg.bind(this);
 
@@ -37,8 +38,12 @@ export default class ModalBox extends Component<{}> {
     }
 
     render(){
-        const {loading, showSuccessMsg, success} = this.state;
+        const {loading, showSuccessMsg, success, driversNames} = this.state;
         const {close, destination} = this.props;
+        const min = Math.floor(Math.random() * 10) + 1;
+        const motoNum = Math.floor(Math.random() * 30) + 1;
+        const driver = driversNames[Math.floor(Math.random() * 6)];
+        const saved = Math.floor(Math.random() * 30) + 10;
         return (
             <Modal style={[styles.modal, styles.modal3]} position={"center"} ref={"modal3"} isDisabled={this.state.isDisabled}>
                 {loading &&
@@ -52,7 +57,7 @@ export default class ModalBox extends Component<{}> {
                     <Text style={{color: '#3B5998', fontSize: 14, textAlign: 'center', marginBottom: 15}}>נמצא נהג עבורך</Text>
                     <Text style={{color: '#3B5998', fontSize: 14, textAlign: 'center', marginBottom: 15}}>היעד: </Text>
                     <Text style={{color: '#3B5998', fontSize: 16, textAlign: 'center', fontWeight: '700', marginBottom: 15}}>{destination}</Text>
-                    <Text style={{color: '#3B5998', fontSize: 15, textAlign: 'center', marginBottom: 15}}>עומר עם לימונוע מס 9 יגיע אליך תוך 3 דקות</Text>
+                    <Text style={{color: '#3B5998', fontSize: 15, textAlign: 'center', marginBottom: 15}}>{driver} עם לימונוע מס {motoNum} יגיע אליך תוך {min}  דקות </Text>
                     <Text style={{color: '#3B5998', fontSize: 14, marginTop: 15, textAlign: 'center', marginBottom: 15}}>המחיר:
                         <Text style={{color: '#616161', fontSize: 16, fontWeight: '600'}} > 29 שקלים חדשים</Text>
                     </Text>
@@ -62,9 +67,9 @@ export default class ModalBox extends Component<{}> {
                 </View>}
                 {showSuccessMsg &&
                     <View>
-                        <Text style={{color: '#3B5998', fontSize: 14 ,textAlign: 'center'}}>תודה שבחרת</Text>
-                        <Text style={{color: '#fbc02d', fontSize: 16, fontWeight: '600',  marginTop: 15 , textAlign: 'center'}} >LEMONOA</Text>
-                        <Text style={{color: '#3B5998', fontSize: 14, marginTop: 15, textAlign: 'center', marginBottom: 15}}> האופנוע יגיע תוך<Text> 3 דקות </Text></Text>
+                        {/*<Text style={{color: '#3B5998', fontSize: 14 ,textAlign: 'center'}}> חסכת {saved} ש״ח </Text>*/}
+                        <Text style={{color: '#fbc02d', fontSize: 16, fontWeight: '600',  marginTop: 15 , textAlign: 'center'}} > הנסיעה עלתה {saved} ש״ח פחות ממונית </Text>
+                        <Text style={{color: '#3B5998', fontSize: 14, marginTop: 15, textAlign: 'center', marginBottom: 15}}> האופנוע יגיע תוך<Text> {min} דקות </Text></Text>
                         <TouchableHighlight onPress={close} style={styles.approveBtn}>
                             <Text style={{color: '#FFF', fontSize: 15, fontWeight: '600', textAlign: 'center'}} onPress={close}>סגור</Text>
                         </TouchableHighlight>

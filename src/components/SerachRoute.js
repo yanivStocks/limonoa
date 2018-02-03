@@ -27,7 +27,7 @@ export default class SearchRoute extends Component<{}> {
 
     }
 
-    getLimonaRoud(steps) {
+    getLimonaRoud(steps, type) {
         const {currentLocation} = this.props;
         let lemoDestination = '';
         let lemoDestinationStop = '';
@@ -36,6 +36,7 @@ export default class SearchRoute extends Component<{}> {
                lemoDestination =`${steps[i].start_location.lat},${steps[i].start_location.lng}`;
                lemoDestinationStop = steps[i].transit_details.departure_stop.name;
                this.setState({lemoDestination,lemoDestinationStop});
+               break;
            }
         }
         fetch(`https://maps.googleapis.com/maps/api/directions/json?language=iw&origin=${currentLocation}&destination=${lemoDestination}&mode=driving&key=AIzaSyBsrXgDNR_bVCYuKMkhs9LU6c_n9fzNZG8`)
@@ -44,7 +45,7 @@ export default class SearchRoute extends Component<{}> {
                 console.log(responseJson.routes[0]);
                 if (responseJson.routes) {
                     this.setState({overview_polyline: responseJson.routes[0].overview_polyline});
-                    this.routeSelected();
+                    this.routeSelected(type);
                 }
 
             })
@@ -53,10 +54,31 @@ export default class SearchRoute extends Component<{}> {
             });
     }
 
-    orderLimoWithTransit() {
-        const {currentLocation} = this.props;
-        const originAddress = 'Azrieli Mall, Derech Menachem Begin 132, Tel Aviv-Yafo';
-        fetch(`https://maps.googleapis.com/maps/api/directions/json?language=iw&origin=${originAddress}&destination=${this.state.destination}&mode=transit&key=AIzaSyBsrXgDNR_bVCYuKMkhs9LU6c_n9fzNZG8&transit_mode=train|bus`)
+
+    getLimonaRoute(type) {
+        const {destination} = this.state;
+        let lemoDestination = '';
+        let lemoDestinationStop = '';
+        this.setState({lemoDestination,lemoDestinationStop: destination});
+        const originAddress = 'מסוף 2000, תל אביב יפו';
+
+        fetch(`https://maps.googleapis.com/maps/api/directions/json?language=iw&origin=${originAddress}&destination=${destination}&mode=driving&key=AIzaSyBsrXgDNR_bVCYuKMkhs9LU6c_n9fzNZG8`)
+            .then((response) => response.json())
+            .then((responseJson) => {
+                console.log(responseJson.routes[0]);
+                if (responseJson.routes) {
+                    this.setState({overview_polyline: responseJson.routes[0].overview_polyline});
+                    this.routeSelected(type);
+                }
+
+            })
+            .catch((error) => {
+                console.error(error);
+            });
+    }
+
+    orderLimoWithTransit(originAddress, destination, type) {
+        fetch(`https://maps.googleapis.com/maps/api/directions/json?language=iw&origin=${originAddress}&destination=${destination}&mode=transit&key=AIzaSyBsrXgDNR_bVCYuKMkhs9LU6c_n9fzNZG8&transit_mode=train|bus`)
             .then((response) => response.json())
             .then((responseJson) => {
                 console.log(responseJson.routes, responseJson.routes[0].legs);
@@ -64,7 +86,12 @@ export default class SearchRoute extends Component<{}> {
                     this.setState({legs: responseJson.routes[0].legs, steps: responseJson.routes[0].legs[0].steps});
                 }
 
-                this.getLimonaRoud(responseJson.routes[0].legs[0].steps);
+                if (type === 1) {
+                    this.getLimonaRoud(responseJson.routes[0].legs[0].steps, type);
+                } else {
+                    this.getLimonaRoute(type);
+                }
+
             })
             .catch((error) => {
                 console.error(error);
@@ -75,20 +102,24 @@ export default class SearchRoute extends Component<{}> {
         this.props.closeSearchRoute();
     }
 
-    routeSelected() {
+    routeSelected(type) {
         const {steps, openSteps, destination,  overview_polyline, lemoDestination,lemoDestinationStop} = this.state;
         this.setState({openSteps: false});
-        this.props.showRouteSelected(steps, destination, overview_polyline, lemoDestination,lemoDestinationStop);
+        this.props.showRouteSelected(steps, destination, overview_polyline, lemoDestination,lemoDestinationStop, type);
         this.close()
     }
 
     orderLimoNow() {
         const {currentLocation, orderLimo} = this.props;
         const {destination} = this.state;
+        const originAddress = 'מסוף 2000, תל אביב יפו';
+
         if ( currentLocation.includes("תל אביב יפו") && destination.includes("תל אביב יפו")) {
             orderLimo(destination)
+        } else if(currentLocation.includes("תל אביב יפו") && !destination.includes("תל אביב יפו")){
+            this.orderLimoWithTransit(originAddress, destination, 1);
         } else {
-            this.orderLimoWithTransit();
+            this.orderLimoWithTransit(currentLocation, originAddress, 2);
         }
 
     }
@@ -102,7 +133,7 @@ export default class SearchRoute extends Component<{}> {
 
 
                 <TouchableHighlight style={styles.closeBtn} onPress={this.close}>
-                    <Icon name="times" size={15}  style={{color: '#FFF', width: 15}} />
+                    <Icon name="times" size={20}  style={{color: '#FFF', width: 20}} />
                 </TouchableHighlight>
                 <TextInput
                     underlineColorAndroid='transparent'
@@ -121,6 +152,7 @@ export default class SearchRoute extends Component<{}> {
                     renderDescription={row => row.description} // custom description render
                     onPress={(data, details = null) => {
                         this.setState({destination: data.description});
+                        this.orderLimoNow();
                     }}
                     getDefaultValue={() => {
                         return ''; // text input default value
@@ -183,9 +215,9 @@ export default class SearchRoute extends Component<{}> {
                     ]} // filter the reverse geocoding results by types - ['locality', 'administrative_area_level_3'] if you want to display only cities
                     debounce={200}
                 />
-                <TouchableHighlight style={styles.continueBtn} onPress={this.orderLimoNow}>
-                    <Text style={styles.continueBtnText}>בחר</Text>
-                </TouchableHighlight>
+                {/*<TouchableHighlight style={styles.continueBtn} onPress={this.orderLimoNow}>*/}
+                    {/*<Text style={styles.continueBtnText}>בחר</Text>*/}
+                {/*</TouchableHighlight>*/}
 
 
                 {/*<View style={styles.orderNow}>*/}
@@ -217,8 +249,8 @@ const styles = StyleSheet.create({
         position: 'absolute',
         top: 5,
         right: -15,
-        height: 30,
-        width:30
+        height: 40,
+        width:40
     },
 
     topViewInput: {
